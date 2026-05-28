@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts"],"version":"5.9.3"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/filtropontos.tsx","./src/components/pontocard.tsx","./src/components/pontodetalhesmodal.tsx","./src/components/pontoimagem.tsx","./src/data/pontossantos.ts"],"version":"5.9.3"}

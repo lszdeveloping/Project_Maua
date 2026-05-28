@@ -5,6 +5,7 @@ import {
   Compass,
   Droplets,
   Landmark,
+  MapPin,
   MapPinned,
   Navigation,
   Star,
@@ -12,7 +13,16 @@ import {
   Waves,
   Wind,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { PontoCard } from './components/PontoCard'
+import { PontoDetalhesModal } from './components/PontoDetalhesModal'
+import { FiltroPontos } from './components/FiltroPontos'
+import {
+  filtrarPontos,
+  pontosSantos,
+  type FiltroPonto,
+  type PontoSantos,
+} from './data/pontosSantos'
 
 type Beach = {
   id: string
@@ -63,7 +73,7 @@ type Attraction = {
   imageCredit?: string
 }
 
-type TotemScreen = 'inicio' | 'praias' | 'clima' | 'turismo' | 'bike'
+type TotemScreen = 'inicio' | 'praias' | 'clima' | 'turismo' | 'pontos' | 'bike'
 
 type WeatherState = {
   temp: number
@@ -486,6 +496,7 @@ const screens: Array<{
   { id: 'praias', label: 'Praias', hint: 'Fotos e notas', icon: Waves },
   { id: 'clima', label: 'Clima', hint: 'Tempo de hoje', icon: CloudSun },
   { id: 'turismo', label: 'Turismo', hint: 'Lugares para visitar', icon: Landmark },
+  { id: 'pontos', label: 'Pontos de Santos', hint: 'Locais estratégicos', icon: MapPin },
   { id: 'bike', label: 'Bike', hint: 'Rotas e calorias', icon: Bike },
 ]
 
@@ -640,8 +651,8 @@ function App() {
   )
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.14),_transparent_28%),linear-gradient(160deg,_#0f3d4c_0%,_#145a6b_42%,_#efb447_100%)] text-stone-950">
-      <div className="mx-auto grid min-h-screen max-w-[1700px] gap-6 px-4 py-4 lg:grid-cols-[280px_minmax(0,1fr)] lg:px-6 lg:py-6">
+    <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.14),_transparent_28%),linear-gradient(160deg,_#0f3d4c_0%,_#145a6b_42%,_#efb447_100%)] text-stone-950">
+      <div className="mx-auto grid min-h-screen max-w-[1700px] gap-4 px-3 py-3 sm:gap-6 sm:px-4 sm:py-4 lg:grid-cols-[280px_minmax(0,1fr)] lg:px-6 lg:py-6">
         <aside className="rounded-[2rem] border border-white/25 bg-stone-950/86 p-5 text-white shadow-[0_30px_120px_rgba(4,18,24,0.35)] backdrop-blur">
           <div className="rounded-[1.75rem] bg-white/6 p-5">
             <span className="inline-flex rounded-full bg-amber-300 px-3 py-1 text-xs font-bold tracking-[0.24em] text-stone-950 uppercase">
@@ -717,7 +728,7 @@ function App() {
         </aside>
 
         <section className="overflow-hidden rounded-[2.2rem] border border-white/30 bg-white/82 shadow-[0_30px_120px_rgba(6,24,35,0.25)] backdrop-blur">
-          <header className="border-b border-stone-200/80 px-6 py-5 lg:px-8">
+          <header className="border-b border-stone-200/80 px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-sm font-semibold tracking-[0.24em] text-teal-800 uppercase">
@@ -744,7 +755,7 @@ function App() {
             </div>
           </header>
 
-          <div className="h-full px-6 py-6 lg:px-8 lg:py-7">
+          <div className="h-full px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
             {screen === 'inicio' && (
               <HomeScreen
                 weather={weather}
@@ -780,6 +791,10 @@ function App() {
                 selectedAttraction={selectedAttraction}
                 onSelectAttraction={setSelectedAttraction}
               />
+            )}
+
+            {screen === 'pontos' && (
+              <PontosScreen onGoToBike={() => setScreen('bike')} />
             )}
 
             {screen === 'bike' && (
@@ -822,12 +837,12 @@ function HomeScreen({
 }) {
   return (
     <div className="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
-      <section className="overflow-hidden rounded-[2rem] bg-[linear-gradient(145deg,_rgba(15,61,76,0.96),_rgba(20,90,107,0.94)),url('https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1400&q=80')] bg-cover bg-center p-7 text-white">
+      <section className="overflow-hidden rounded-[2rem] bg-[linear-gradient(145deg,_rgba(15,61,76,0.96),_rgba(20,90,107,0.94)),url('https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1400&q=80')] bg-cover bg-center p-5 text-white sm:p-7">
         <div className="max-w-2xl">
           <span className="inline-flex rounded-full bg-white/14 px-4 py-1 text-xs font-bold tracking-[0.24em] uppercase">
             Roteiro em destaque
           </span>
-          <h3 className="mt-5 font-['Sora'] text-4xl font-semibold leading-tight lg:text-5xl">
+          <h3 className="mt-5 font-['Sora'] text-2xl font-semibold leading-tight sm:text-4xl lg:text-5xl">
             Uma interface de totem pronta para guiar turistas pela Baixada Santista.
           </h3>
           <p className="mt-4 max-w-xl text-base leading-7 text-teal-50/90">
@@ -949,6 +964,12 @@ function BeachesScreen({
   onSelectBeach: (beach: Beach) => void
 }) {
   const [cityFilter, setCityFilter] = useState<'Todas' | 'Santos' | 'Guarujá'>('Todas')
+  const detailRef = useRef<HTMLElement>(null)
+
+  const handleSelectBeach = (beach: Beach) => {
+    onSelectBeach(beach)
+    scrollDetailIntoView(detailRef.current)
+  }
 
   const filteredBeaches =
     cityFilter === 'Todas'
@@ -999,7 +1020,7 @@ function BeachesScreen({
               <button
                 key={beach.id}
                 type="button"
-                onClick={() => onSelectBeach(beach)}
+                onClick={() => handleSelectBeach(beach)}
                 className={`w-full rounded-[1.7rem] border p-4 text-left transition ${
                   active
                     ? 'border-teal-900 bg-teal-950 text-white'
@@ -1060,7 +1081,10 @@ function BeachesScreen({
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[2rem] border border-stone-200 bg-white">
+      <section
+        ref={detailRef}
+        className="scroll-mt-4 overflow-hidden rounded-[2rem] border border-stone-200 bg-white"
+      >
         <div className="relative h-72 overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_40%),linear-gradient(160deg,_#0f3d4c_0%,_#145a6b_55%,_#efb447_100%)]">
           {visibleSelectedBeach.image ? (
             <img
@@ -1329,6 +1353,13 @@ function TourismScreen({
   selectedAttraction: Attraction
   onSelectAttraction: (attraction: Attraction) => void
 }) {
+  const detailRef = useRef<HTMLElement>(null)
+
+  const handleSelectAttraction = (attraction: Attraction) => {
+    onSelectAttraction(attraction)
+    scrollDetailIntoView(detailRef.current)
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-[0.92fr_1.15fr]">
       <section className="grid gap-4">
@@ -1339,7 +1370,7 @@ function TourismScreen({
             <button
               key={attraction.id}
               type="button"
-              onClick={() => onSelectAttraction(attraction)}
+              onClick={() => handleSelectAttraction(attraction)}
               className={`overflow-hidden rounded-[1.7rem] border text-left transition ${
                 active
                   ? 'border-amber-300 bg-[#fff7e8]'
@@ -1392,7 +1423,10 @@ function TourismScreen({
         })}
       </section>
 
-      <section className="overflow-hidden rounded-[2rem] bg-stone-950 text-white">
+      <section
+        ref={detailRef}
+        className="scroll-mt-4 overflow-hidden rounded-[2rem] bg-stone-950 text-white"
+      >
         <div className="relative h-80 overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.14),_transparent_30%),linear-gradient(160deg,_#102f3b_0%,_#15586a_52%,_#efb447_100%)]">
           {selectedAttraction.image ? (
             <img
@@ -1495,6 +1529,67 @@ function TourismScreen({
   )
 }
 
+function PontosScreen({ onGoToBike }: { onGoToBike: () => void }) {
+  const [filtro, setFiltro] = useState<FiltroPonto>('Todos')
+  const [busca, setBusca] = useState('')
+  const [pontoSelecionado, setPontoSelecionado] = useState<PontoSantos | null>(null)
+
+  const pontosFiltrados = useMemo(
+    () => filtrarPontos(pontosSantos, filtro, busca),
+    [filtro, busca],
+  )
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-[2rem] bg-[linear-gradient(150deg,_rgba(15,61,76,0.96),_rgba(20,90,107,0.94))] p-6 text-white lg:p-7">
+        <span className="inline-flex rounded-full bg-amber-300 px-4 py-1 text-xs font-bold uppercase tracking-[0.22em] text-stone-950">
+          Guia da cidade
+        </span>
+        <h3 className="mt-4 font-['Sora'] text-3xl font-semibold leading-tight lg:text-4xl">
+          Pontos estratégicos de Santos para explorar de bike.
+        </h3>
+        <p className="mt-3 max-w-2xl text-base leading-7 text-teal-50/90">
+          Turismo, cultura, compras, alimentação e apoio ao ciclista — filtre por
+          categoria, busque pelo nome e toque em um card para ver os detalhes.
+        </p>
+      </section>
+
+      <FiltroPontos
+        filtroAtivo={filtro}
+        onFiltroChange={setFiltro}
+        busca={busca}
+        onBuscaChange={setBusca}
+      />
+
+      <p className="text-sm font-medium text-stone-500">
+        {pontosFiltrados.length === 0
+          ? 'Nenhum ponto encontrado para esse filtro ou busca.'
+          : `${pontosFiltrados.length} ${
+              pontosFiltrados.length === 1 ? 'ponto encontrado' : 'pontos encontrados'
+            }.`}
+      </p>
+
+      {pontosFiltrados.length > 0 && (
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {pontosFiltrados.map((ponto) => (
+            <PontoCard
+              key={ponto.id}
+              ponto={ponto}
+              onVerDetalhes={setPontoSelecionado}
+              onVerRota={onGoToBike}
+            />
+          ))}
+        </div>
+      )}
+
+      <PontoDetalhesModal
+        ponto={pontoSelecionado}
+        onClose={() => setPontoSelecionado(null)}
+      />
+    </div>
+  )
+}
+
 function BikeScreen({
   hasGoogleMapsKey,
   routes,
@@ -1506,6 +1601,13 @@ function BikeScreen({
   selectedRoute: Route
   onSelectRoute: (route: Route) => void
 }) {
+  const detailRef = useRef<HTMLElement>(null)
+
+  const handleSelectRoute = (route: Route) => {
+    onSelectRoute(route)
+    scrollDetailIntoView(detailRef.current)
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-[0.94fr_1.1fr]">
       <section className="space-y-4">
@@ -1516,7 +1618,7 @@ function BikeScreen({
             <button
               key={route.id}
               type="button"
-              onClick={() => onSelectRoute(route)}
+              onClick={() => handleSelectRoute(route)}
               className={`w-full rounded-[1.7rem] border p-5 text-left transition ${
                 active
                   ? 'border-teal-900 bg-teal-950 text-white'
@@ -1555,7 +1657,10 @@ function BikeScreen({
         })}
       </section>
 
-      <section className="rounded-[2rem] border border-stone-200 bg-[#edf7f7] p-6">
+      <section
+        ref={detailRef}
+        className="scroll-mt-4 rounded-[2rem] border border-stone-200 bg-[#edf7f7] p-6"
+      >
         <p className="text-sm font-semibold tracking-[0.22em] text-teal-800 uppercase">
           Rota selecionada
         </p>
@@ -1788,6 +1893,16 @@ function MiniRouteMap({
   )
 }
 
+// No mobile/tablet (abaixo de xl) o painel de detalhe fica empilhado embaixo
+// da lista. Ao tocar num card, rolamos suavemente até ele.
+function scrollDetailIntoView(element: HTMLElement | null) {
+  if (element && typeof window !== 'undefined' && window.innerWidth < 1280) {
+    requestAnimationFrame(() => {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
+}
+
 function screenTitle(screen: TotemScreen) {
   switch (screen) {
     case 'inicio':
@@ -1798,6 +1913,8 @@ function screenTitle(screen: TotemScreen) {
       return 'Clima do dia com OpenWeather'
     case 'turismo':
       return 'Pontos turísticos em destaque'
+    case 'pontos':
+      return 'Pontos estratégicos de Santos'
     case 'bike':
       return 'Rotas de bicicleta e dados de esforço'
     default:
