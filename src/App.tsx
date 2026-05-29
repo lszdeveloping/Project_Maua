@@ -502,7 +502,6 @@ const screens: Array<{
 
 function App() {
   const hasGoogleMapsKey = Boolean(import.meta.env.VITE_GOOGLE_MAPS_API_KEY)
-  const hasGeoapifyKey = Boolean(import.meta.env.VITE_GEOAPIFY_API_KEY)
   const [screen, setScreen] = useState<TotemScreen>('inicio')
   const [selectedBeach, setSelectedBeach] = useState<Beach>(beaches[0])
   const [attractions, setAttractions] = useState<Attraction[]>(fallbackAttractions)
@@ -719,11 +718,11 @@ function App() {
             <p className="mt-3 text-sm text-teal-50 capitalize">
               {weather.description}
             </p>
-            <p className="mt-2 text-xs text-teal-100">
-              {weatherStatus === 'ready'
-                ? `Atualizado com OpenWeather para ${weather.city}.`
-                : 'Sem chave configurada, exibindo dados de exemplo.'}
-            </p>
+            {weatherStatus === 'ready' && (
+              <p className="mt-2 text-xs text-teal-100">
+                Atualizado para {weather.city}.
+              </p>
+            )}
           </div>
         </aside>
 
@@ -759,9 +758,6 @@ function App() {
             {screen === 'inicio' && (
               <HomeScreen
                 weather={weather}
-                hasGoogleMapsKey={hasGoogleMapsKey}
-                hasGeoapifyKey={hasGeoapifyKey}
-                attractionsStatus={attractionsStatus}
                 onGoToBeach={() => setScreen('praias')}
                 onGoToTourism={() => setScreen('turismo')}
                 onGoToBike={() => setScreen('bike')}
@@ -814,9 +810,6 @@ function App() {
 
 function HomeScreen({
   weather,
-  hasGoogleMapsKey,
-  hasGeoapifyKey,
-  attractionsStatus,
   beaches,
   attractions,
   routes,
@@ -825,9 +818,6 @@ function HomeScreen({
   onGoToBike,
 }: {
   weather: WeatherState
-  hasGoogleMapsKey: boolean
-  hasGeoapifyKey: boolean
-  attractionsStatus: 'idle' | 'loading' | 'ready' | 'fallback'
   beaches: Beach[]
   attractions: Attraction[]
   routes: Route[]
@@ -930,23 +920,6 @@ function HomeScreen({
                 </div>
               ),
             )}
-          </div>
-        </section>
-
-        <section className="rounded-[2rem] border border-stone-200 bg-white p-6">
-          <p className="text-sm font-semibold tracking-[0.22em] text-teal-800 uppercase">
-            Integrações
-          </p>
-          <div className="mt-4 space-y-3 text-sm text-stone-600">
-            <div className="rounded-[1.2rem] bg-stone-100 px-4 py-3">
-              OpenWeather ativo no frontend.
-            </div>
-            <div className="rounded-[1.2rem] bg-stone-100 px-4 py-3">
-              Google Maps key {hasGoogleMapsKey ? 'configurada' : 'não configurada'}.
-            </div>
-            <div className="rounded-[1.2rem] bg-stone-100 px-4 py-3">
-              Geoapify {geoapifyStatusLabel(hasGeoapifyKey, attractionsStatus)}.
-            </div>
           </div>
         </section>
       </div>
@@ -1275,7 +1248,7 @@ function WeatherScreen({
   weatherStatus: 'idle' | 'loading' | 'ready' | 'fallback'
 }) {
   return (
-    <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+    <div className="grid gap-6">
       <section className="rounded-[2rem] bg-teal-950 p-7 text-white">
         <p className="text-sm font-semibold tracking-[0.24em] text-teal-200 uppercase">
           Painel de clima
@@ -1288,10 +1261,10 @@ function WeatherScreen({
             </p>
             <p className="mt-2 text-sm text-teal-200">
               {weatherStatus === 'ready'
-                ? 'Leitura carregada da API do OpenWeather.'
+                ? 'Leitura de clima atualizada.'
                 : weatherStatus === 'loading'
                   ? 'Atualizando dados de clima...'
-                  : 'Exibindo valores de exemplo até a chave ser configurada.'}
+                  : 'Exibindo valores de exemplo.'}
             </p>
           </div>
           <CloudSun className="h-24 w-24 text-amber-300" />
@@ -1316,24 +1289,6 @@ function WeatherScreen({
             value={`${weather.feelsLike}°C`}
             tone="dark"
           />
-        </div>
-      </section>
-
-      <section className="rounded-[2rem] border border-stone-200 bg-stone-50 p-6">
-        <p className="text-sm font-semibold tracking-[0.22em] text-teal-800 uppercase">
-          Configuração da API
-        </p>
-        <h3 className="mt-2 font-['Sora'] text-2xl font-semibold">
-          Como alimentar o clima real
-        </h3>
-        <div className="mt-5 space-y-3 text-sm leading-7 text-stone-600">
-          <p>1. Abra o arquivo `.env` na raiz do projeto.</p>
-          <p>2. Preencha `VITE_OPENWEATHER_API_KEY` com a sua chave.</p>
-          <p>3. Reinicie o `npm run dev` para o Vite recarregar as variáveis.</p>
-          <p>
-            4. O projeto já consulta o endpoint de clima atual para as coordenadas de
-            Santos.
-          </p>
         </div>
       </section>
     </div>
@@ -1910,7 +1865,7 @@ function screenTitle(screen: TotemScreen) {
     case 'praias':
       return 'Praias com selecao e detalhes'
     case 'clima':
-      return 'Clima do dia com OpenWeather'
+      return 'Clima do dia'
     case 'turismo':
       return 'Pontos turísticos em destaque'
     case 'pontos':
@@ -2124,25 +2079,6 @@ function wikimediaImageUrl(fileName?: string) {
   }
 
   return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}`
-}
-
-function geoapifyStatusLabel(
-  hasGeoapifyKey: boolean,
-  status: 'idle' | 'loading' | 'ready' | 'fallback',
-) {
-  if (!hasGeoapifyKey) {
-    return 'não configurado'
-  }
-
-  if (status === 'ready') {
-    return 'ativo com lugares reais'
-  }
-
-  if (status === 'loading') {
-    return 'carregando lugares'
-  }
-
-  return 'configurado com fallback local'
 }
 
 const KIOSK_ORIGIN = {
