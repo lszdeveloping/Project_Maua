@@ -85,11 +85,11 @@ type WeatherState = {
 }
 
 const weatherFallback: WeatherState = {
-  temp: 27,
-  description: 'Céu aberto e vento leve para praia e pedal.',
-  humidity: 68,
-  windSpeed: 12,
-  feelsLike: 29,
+  temp: 22,
+  description: 'Chuva fraca com céu parcialmente nublado.',
+  humidity: 73,
+  windSpeed: 10,
+  feelsLike: 22,
   city: 'Santos',
 }
 
@@ -1264,7 +1264,7 @@ function WeatherScreen({
                 ? 'Leitura de clima atualizada.'
                 : weatherStatus === 'loading'
                   ? 'Atualizando dados de clima...'
-                  : 'Exibindo valores de exemplo.'}
+                  : 'Dados de hoje para Santos.'}
             </p>
           </div>
           <CloudSun className="h-24 w-24 text-amber-300" />
